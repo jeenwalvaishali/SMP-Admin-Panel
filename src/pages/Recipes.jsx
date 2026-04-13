@@ -6,8 +6,12 @@ import "../styles/RecipeList.css";
 export default function Recipes() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [recipeToDelete, setRecipeToDelete] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [message, setMessage] = useState({ type: "", text: "" });
   const navigate = useNavigate();
 
+  // Fetch Recipes
   const fetchRecipes = async () => {
     try {
       const res = await getRecipes();
@@ -39,25 +43,78 @@ export default function Recipes() {
     fetchRecipes();
   }, []);
 
-  const handleDelete = async (id) => {
+  //Delete Recipe
+  const handleDelete = async () => {
+    const id = recipeToDelete;
+    if (!id) return;
+
     try {
+      setDeletingId(id);
+      setRecipeToDelete(null); // Close the popup immediately
+      setMessage({ type: "", text: "" });
+
       await deleteRecipe(id);
-      fetchRecipes();
+
+      setMessage({
+        type: "success",
+        text: "Recipe deleted successfully! ✓",
+      });
+
+      setTimeout(() => {
+        fetchRecipes();
+        setMessage({ type: "", text: "" });
+      }, 1500);
     } catch (error) {
       console.error("Delete failed:", error);
+      const errorText =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to delete recipe. Please try again.";
+
+      setMessage({ type: "error", text: errorText });
+      setTimeout(() => {
+        setMessage({ type: "", text: "" });
+      }, 4000);
+    } finally {
+      setDeletingId(null);
     }
+  };
+
+  // Logout Function
+  const handleLogout = () => {
+    // 1. Clear your auth data (adjust based on where you store it)
+    localStorage.removeItem("token");
+    sessionStorage.clear();
+
+    // 2. Redirect to the login page
+    navigate("/login");
   };
 
   if (loading) return <h3>Loading...</h3>;
 
+  //Recipe List UI
   return (
     <div className="container">
+      {/* MESSAGE ALERT */}
+      {message.text && (
+        <div className={`message-alert message-${message.type}`}>
+          {message.text}
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="header">
         <h2>Recipes</h2>
-        <button className="primary-btn" onClick={() => navigate("/create")}>
-          + Create Recipe
-        </button>
+        <div className="header-actions">
+          <button className="primary-btn" onClick={() => navigate("/create")}>
+            + Create Recipe
+          </button>
+          {/* NEW LOGOUT BUTTON */}
+          <button className="logout-btn" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </div>
 
       {/* GRID */}
@@ -84,66 +141,43 @@ export default function Recipes() {
                 <button
                   className="edit-btn"
                   onClick={() => navigate(`/edit/${r._id}`)}
+                  disabled={deletingId === r._id}
                 >
                   Edit
                 </button>
 
                 <button
                   className="delete-btn"
-                  onClick={() => handleDelete(r._id)}
+                  onClick={() => setRecipeToDelete(r._id)}
+                  disabled={deletingId === r._id}
                 >
-                  Delete
+                  {deletingId === r._id ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {recipeToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-icon">ⓘ</div>
+            <h2 className="modal-title">Delete this recipe?</h2>
+            <p className="modal-subtitle">You won't be able to return to this response</p>
+            
+            <div className="modal-actions">
+              <button className="btn-confirm" onClick={handleDelete}>
+                Delete
+              </button>
+              <button className="btn-cancel" onClick={() => setRecipeToDelete(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-//     return (
-//     <div style={{ padding: 20 }}>
-//       <h2>Recipes</h2>
-
-//       <button onClick={() => navigate("/create")}>
-//         ➕ Create Recipe
-//       </button>
-
-//       <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
-//         {recipes.map((r) => (
-//           <div
-//             key={r._id}
-//             style={{
-//               border: "1px solid #ddd",
-//               padding: 10,
-//               width: 220,
-//               borderRadius: 10,
-//             }}
-//           >
-//             <h4>{r.title}</h4>
-
-//             {r.imageUrl && (
-//               <img
-//                 src={r.imageUrl}
-//                 alt=""
-//                 style={{ width: "100%", borderRadius: 8 }}
-//               />
-//             )}
-
-//             <div style={{ display: "flex", gap: 10 }}>
-//               <button onClick={() => navigate(`/edit/${r._id}`)}>
-//                 ✏️ Edit
-//               </button>
-
-//               <button onClick={() => handleDelete(r._id)}>
-//                 ❌ Delete
-//               </button>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// }

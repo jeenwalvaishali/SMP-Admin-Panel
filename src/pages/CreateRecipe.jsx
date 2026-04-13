@@ -24,6 +24,12 @@ export default function CreateRecipe() {
     const file = e.target.files[0];
     if (!file) return;
 
+    const maxSizeBytes = 5 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      alert("File is too large. Please upload an image smaller than 5MB.");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("image", file);
@@ -38,8 +44,15 @@ export default function CreateRecipe() {
         imagePublicId: res.data.imagePublicId,
       }));
     } catch (err) {
-      console.log("UPLOAD ERROR:", err.response?.data || err.message);
-      alert("Image upload failed");
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.response?.data ||
+        err.message ||
+        "Image upload failed.";
+
+      console.log("UPLOAD ERROR:", message);
+      alert(message);
     }
   };
 
@@ -55,7 +68,6 @@ export default function CreateRecipe() {
     e.preventDefault();
   };
 
- 
   // -------- ARRAY HELPERS --------
   const handleArrayChange = (type, index, value) => {
     const updated = [...form[type]];
@@ -86,6 +98,7 @@ export default function CreateRecipe() {
 
       navigate("/"); // better than "/"
     } catch (err) {
+      console.log("CREATE ERROR:", err.response?.data || err.message);
       alert("Recipe creation failed");
     } finally {
       setLoading(false);
@@ -126,8 +139,6 @@ export default function CreateRecipe() {
             />
           </div>
         </div>
-
-      
 
         {/* IMAGE UPLOAD */}
         <div className="section">
@@ -239,4 +250,3 @@ export default function CreateRecipe() {
     </div>
   );
 }
-

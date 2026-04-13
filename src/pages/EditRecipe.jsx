@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
+  getRecipe,
   getRecipes,
   updateRecipe,
   uploadImage,
@@ -24,20 +25,71 @@ export default function EditRecipe() {
     steps: [""],
   });
 
+  const extractRecipe = (data) => {
+    if (!data) return null;
+    if (Array.isArray(data)) return data[0] || null;
+    if (data.recipe) return data.recipe;
+    if (data.data) {
+      if (Array.isArray(data.data)) return data.data[0] || null;
+      if (data.data.recipe) return data.data.recipe;
+      return data.data;
+    }
+    return data;
+  };
+
+  const findRecipeById = (items) => {
+    if (!items) return null;
+    const list = Array.isArray(items)
+      ? items
+      : items.recipes || items.data || [];
+
+    if (!Array.isArray(list)) return null;
+
+    return list.find(
+      (r) => r._id == id || r.id == id || r._id == `${id}` || r.id == `${id}`
+    );
+  };
+
+  const normalizeRecipe = (recipe) => ({
+    title: recipe?.title ?? "",
+    description: recipe?.description ?? "",
+    cuisine: recipe?.cuisine ?? "",
+    prepTime: recipe?.prepTime ?? "",
+    imageUrl: recipe?.imageUrl ?? "",
+    imagePublicId: recipe?.imagePublicId ?? "",
+    ingredients:
+      Array.isArray(recipe?.ingredients) && recipe.ingredients.length
+        ? recipe.ingredients
+        : [""],
+    steps:
+      Array.isArray(recipe?.steps) && recipe.steps.length
+        ? recipe.steps
+        : [""],
+  });
+
   // ---------------- FETCH RECIPE ----------------
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await getRecipes();
 
-        const recipe = (res.data.recipes || res.data).find(
-          (r) => r._id === id
-        );
+        let recipe = null;
 
-        if (recipe) setForm(recipe);
+        try {
+          const res = await getRecipe(id);
+          recipe = extractRecipe(res.data);
+        } catch (err) {
+          const listRes = await getRecipes();
+          recipe = findRecipeById(listRes.data);
+        }
+
+        if (recipe) {
+          setForm(normalizeRecipe(recipe));
+        } else {
+          console.warn("Recipe not found for edit id:", id);
+        }
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load recipe:", err);
       } finally {
         setLoading(false);
       }
@@ -46,10 +98,17 @@ export default function EditRecipe() {
     fetchData();
   }, [id]);
 
+
   // ---------------- IMAGE UPLOAD ----------------
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    const maxSizeBytes = 5 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      alert("File is too large. Please upload an image smaller than 5MB.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -65,7 +124,15 @@ export default function EditRecipe() {
         imagePublicId: res.data.imagePublicId,
       }));
     } catch (err) {
-      alert("Image upload failed");
+            const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.response?.data ||
+        err.message ||
+        "Image upload failed.";
+
+      console.log("UPLOAD ERROR:", message);
+      alert(message);
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import { AuthContext } from "../auth/AuthContext";
+import "../styles/Login.css";
 
 export default function Login() {
   const { login } = useContext(AuthContext);
@@ -27,14 +28,45 @@ export default function Login() {
     }
   };
 
-  return (
-    <div>
-      <h2>Admin Login</h2>
+  // return (
+  //   <div>
+  //     <h2>Admin Login</h2>
 
-      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+  //     <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+  //     <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
 
-      <button onClick={handleLogin}>Login</button>
+  //     <button onClick={handleLogin}>Login</button>
+  //   </div>
+  // );
+
+   return (
+    <div className="login-container">
+      <div className="login-card">
+        <h2 className="login-title">Admin Panel</h2>
+        <p className="login-subtitle">Sign in to continue</p>
+
+        <div className="input-group">
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <div className="input-group">
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        <button className="login-button" onClick={handleLogin}>
+          Login
+        </button>
+      </div>
     </div>
   );
 }

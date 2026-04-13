@@ -55,6 +55,15 @@
   margin-top: 10px;
 }
 
+.label {
+  font-weight: 500;
+  color: #333;
+  display: block;        /* Ensures the label takes its own line */
+  text-align: left;      /* Aligns the text to the left */
+  margin-bottom: 10px;   /* Adds space between label and the box */
+  margin-left: 5px;      /* Slight nudge from the left edge if needed */
+}
+
 .upload-box {
   border: 2px dashed #cfd8dc;
   border-radius: 14px;

@@ -4,6 +4,10 @@ export const getRecipes = async () => {
   return await axiosClient.get("/recipes");
 };
 
+export const getRecipe = async (id) => {
+  return await axiosClient.get(`/recipes/${id}`);
+};
+
 export const createRecipe = async (data) => {
   return await axiosClient.post("/recipes", data);
 };
