@@ -95,3 +95,20 @@ The app uses a context-based authentication system. Login credentials are manage
 ## License
 
 This project is part of the SmartMealPrep system. See project license for details.
+
+## 👨‍💼 Admin Login
+
+![Admin Login](docs/images/loginpage.png)
+
+## 👨‍💼 Admin Dashboard
+
+![Admin Dashboard](docs/images/dashboard.png)
+
+## 👨‍💼 Admin Create Recipe
+
+![Admin Create Recipe](docs/images//createrecipe.png)
+
+## 👨‍💼 Admin Edit Recipe
+
+![Admin Edit Recipe](docs/images/editrecipe.png)
+
